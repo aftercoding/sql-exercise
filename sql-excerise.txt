@@ -1,0 +1,262 @@
+1、To query employee name who has the highest salary of each department (取得每个部门最高薪水的人员名称)
+
+SELECT 
+	ename , t.*
+from 
+	emp e
+JOIN
+	(SELECT DEPTNO, max(sal) as maxsal from emp GROUP BY DEPTNO) t
+ON
+	t.DEPTNO = e.DEPTNO and e.SAL = t.maxsal;
+
+2、whose salary is higher than the average of his/her department (哪些人的薪水在部门的平均薪水之上)
+
+select 
+	e.ename, e.sal, t.*
+from
+	emp e
+join
+	(select deptno, avg(sal) as avgsal from emp group by deptno) t
+on 
+    t.deptno = e.deptno and e.sal > t.avgsal; 
+	
+3、To query the salary grade of all employee in each department (取得部门中（所有人的）平均的薪水等级)
+
+SELECT
+	 e.DEPTNO, avg(s.GRADE)
+FROM
+	emp e
+JOIN	
+	salgrade s
+ON
+	e.SAL BETWEEN s.LOSAL AND s.HISAL
+GROUP BY
+	e.DEPTNO;
+	
+4、To query the highest salary without using MAX function (不准用组函数（Max），取得最高薪水（给出两种解决方案）)
+
+SELECT 
+	ENAME, SAL
+FROM
+	emp
+ORDER BY 
+	SAL DESC
+LIMIT
+	1
+=============================
+SELECT sal FROM emp WHERE SAL not in 
+(SELECT 
+	DISTINCT a.SAL
+FROM
+	emp a
+JOIN
+  emp b
+ON 
+	a.SAL < b.SAL);
+	
+5、To query the department no which has the highest average salary (取得平均薪水最高的部门的部门编号)
+
+SELECT 
+	DEPTNO, AVG(SAL) as avgsal
+FROM
+	emp
+GROUP BY DEPTNO
+ORDER BY avgsal DESC 
+LIMIT 1
+
+6、To query the department name which has the highest average salary(取得平均薪水最高的部门的部门名称)
+
+SELECT 
+	d.dname,avg(e.sal) as avgsal 
+FROM
+	emp e
+JOIN
+	dept d
+ON
+	e.DEPTNO = d.DEPTNO
+GROUP BY
+	d.dname
+ORDER BY 
+	avgsal DESC
+LIMIT
+	1;
+	
+9、To query the top five highest salary (取得薪水最高的前五名员工)
+
+SELECT 
+	sal
+FROM
+	emp 
+ORDER BY 
+	sal DESC
+LIMIT
+	5;
+	
+
+10、To query the highest salary from sixth to tenth (取得薪水最高的第六到第十名员工)
+
+SELECT 
+	ename, sal
+FROM
+	emp 
+ORDER BY 
+	sal DESC
+LIMIT
+	5, 5;
+	
+11、To query the last 5 who join the company (取得最后入职的 5 名员工)
+
+SELECT 
+	ename, HIREDATE
+FROM
+	emp 
+ORDER BY 
+	HIREDATE DESC
+LIMIT
+	5 ;
+
+12、To query how many employee of each salary grade (取得每个薪水等级有多少员工)
+
+SELECT 
+	  s.GRADE, COUNT(*)
+FROM
+	emp e
+JOIN
+	salgrade s
+ON
+	e.SAL BETWEEN s.LOSAL and s.HISAL
+GROUP BY
+	s.GRADE;
+
+
+14、To query each employee name and his/her managner' name (列出所有员工及领导的姓名)
+
+SELECT 
+	a.ENAME as '员工', b.ENAME '领导'
+FROM
+	emp a
+JOIN
+	emp b
+ON
+	a.MGR = b.EMPNO;
+
+17、List the department which has at least 5 emplyeees (列出至少有 5 个员工的所有部门)
+
+SELECT 
+	DEPTNO
+FROM 
+	emp
+GROUP BY 
+	DEPTNO
+HAVING COUNT(*) >= 5;
+
+18、List the employee whose salary is higher than "SMITH" (列出薪金比"SMITH"多的所有员工信息.)
+
+SELECT 
+	a.EMPNO,a.ENAME, a.SAL
+FROM emp a
+WHERE a.sal > (SELECT 
+	sal 
+FROM 
+	emp
+WHERE
+	ENAME = 'SMITH')
+
+19、List the employee name and department name and count the number of employee (列出所有"CLERK"(办事员)的姓名及其部门名称,部门的人数.)
+
+SELECT 
+	e.ENAME,e.job, d.DEPTNO, d.DNAME
+FROM
+	emp e
+JOIN 
+	dept d
+ON
+	e.DEPTNO = d.DEPTNO
+WHERE e.JOB = 'CLERK';
+
+23、List all the employee whose has same job with SCOTT and the dempartment name(列出与"SCOTT"从事相同工作的所有员工及部门名称.)
+SELECT e.ENAME, e.JOB,d.DNAME
+FROM 
+	emp e
+JOIN
+	dept d
+ON
+	e.DEPTNO = d.DEPTNO
+WHERE e.job = 
+	(SELECT 
+		JOB
+	FROM
+		emp 
+	WHERE 
+		ENAME = 'SCOTT')
+ and 
+		e.ENAME <> 'SCOTT';
+
+27、List name, dempartment name and salary of every employee (列出所有员工的姓名、部门名称和工资。)
+
+SELECT 
+	e.ENAME, e.sal,d.DNAME
+FROM
+	emp e
+JOIN
+	dept d
+ON
+	d.DEPTNO = e.DEPTNO;
+
+29、List the lowest salary and the emplyeees who take this job (列出各种工作的最低工资及从事此工作的雇员姓名)
+
+SELECT 
+	e.ENAME, t.*
+FROM
+	emp e
+JOIN
+(SELECT 
+	ENAME, job, min(sal) as minsal
+FROM
+	emp e
+GROUP BY
+	JOB) t
+ON
+	e.JOB = t.job AND e.SAL = t.minsal;
+	
+30、List the manager's minimum salary of each dempartment (列出各个部门的 MANAGER(领导)的最低薪金)
+
+SELECT 
+	DEPTNO, MIN(sal)
+FROM
+	emp
+where 
+	JOB = 'MANAGER'
+GROUP BY
+	DEPTNO;
+
+31、List annual salary of all employee asc  (列出所有员工的年工资,按年薪从低到高排序)
+SELECT 
+	ENAME, (sal + IFNULL(COMM, 0))* 12 as yearsal
+FROM
+	emp
+ORDER BY
+	yearsal asc;
+	
+	
+32、To compute the leader whose salary is higher than 3000 and list his/her team member (求出员工领导的薪水超过 3000 的员工名称与领导名称)
+
+SELECT 
+	a.ENAME as '员工', b.ENAME AS '领导'
+FROM 
+	emp a
+JOIN
+	emp b
+ON
+	a.MGR= b.EMPNO
+WHERE
+	b.SAL > 3000;
+	
+34、To increase 10% salary for the employee who has been worked for 30 years.(给任职日期超过 30 年的员工加薪 10%.)
+
+UPDATE 
+	emp
+SET
+	SAL = SAL * 1.1
+WHERE
+	TIMESTAMPDIFF(YEAR,HIREDATE, NOW()) > 30;
